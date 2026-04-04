@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OmniConvert - Unit Converter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <aside class="app-sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-logo"><i class="fas fa-bolt"></i></div>
+                <span class="brand-name">Omni<b>Convert</b></span>
+            </div>
+            
+            <div class="sidebar-search">
+                <i class="fas fa-magnifying-glass"></i>
+                <input type="text" id="catSearch" placeholder="Search categories or units..." oninput="filterCategories()">
+            </div>
+
+            <nav class="sidebar-nav" id="sidebarNav"></nav>
+        </aside>
+
+        <main class="app-main">
+            <header class="main-header">
+                <div class="header-info">
+                    <h1 id="activeCategoryTitle">Length Engine</h1>
+                    <span class="status-pill">Ready to Convert</span>
+                    <select id="categorySelect" class="category-select"></select>
+                </div>
+                
+                <div class="header-actions">
+                    <button class="hamburger" id="hamburgerBtn">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <div class="dropdown">
+                        <button class="nav-icon-btn" id="settingsDropdown" data-bs-toggle="dropdown">
+                            <i class="fas fa-sliders"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end settings-panel p-3">
+                            <h6><i class="fas fa-cog me-2"></i>Quick Settings</h6>
+                            <hr>
+                            <div class="setting-row">
+                                <span>Dark Mode</span>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="themeToggle">
+                                </div>
+                            </div>
+                            <div class="setting-row">
+                                <span>Precision</span>
+                                <select id="precisionSetting" class="form-select form-select-sm w-auto">
+                                    <option value="2">2 Places</option>
+                                    <option value="4">4 Places</option>
+                                    <option value="8">Scientific</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="workspace-content">
+                <div class="glass-card converter-card">
+                    <div class="converter-layout">
+                        <div class="input-zone">
+                            <label>From</label>
+                            <select id="fromUnit" class="unit-select"></select>
+                            <input type="number" id="inputValue" class="big-input" placeholder="0.00">
+                        </div>
+
+                        <div class="interaction-zone">
+                            <button class="swap-btn-circular" onclick="swapUnits()">
+                                <i class="fas fa-right-left"></i>
+                            </button>
+                        </div>
+
+                        <div class="output-zone">
+                            <label>To</label>
+                            <select id="toUnit" class="unit-select"></select>
+                            <div id="outputValue" class="big-output">0.00</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="glass-card recent-activity">
+                        <div class="card-head">
+                            <h5><i class="fas fa-history me-2"></i>Recent Activity</h5>
+                            <button class="btn-clear" onclick="clearHistory()">Clear</button>
+                        </div>
+                        <div id="historyFeed" class="history-feed">
+                            <div style="text-align: center; color: var(--text-muted); padding: 1rem;">No conversions yet</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card stats-overview">
+                        <h5><i class="fas fa-chart-line me-2"></i>Performance</h5>
+                        <div class="stat-item">
+                            <span>Calculations Today</span>
+                            <strong id="calcCount">0</strong>
+                        </div>
+                        <div class="stat-item">
+                            <span>Primary Tool</span>
+                            <strong id="topCategory">Length</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="main-footer">
+                <p>&copy; 2026 OmniConvert . Precision Engineering Tools . All Rights Reserved</p>
+            </footer>
+        </main>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

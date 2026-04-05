@@ -24,14 +24,36 @@
             </div>
 
             <nav class="sidebar-nav" id="sidebarNav"></nav>
+            
+            <div class="sidebar-settings">
+                <h6><i class="fas fa-cog me-2"></i>Quick Settings</h6>
+                <div class="setting-row">
+                    <span>Dark Mode</span>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="themeToggleMobile">
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <span>Precision</span>
+                    <select id="precisionSettingMobile" class="form-select form-select-sm w-auto">
+                        <option value="0">0 Places</option>
+                        <option value="2" selected>2 Places</option>
+                        <option value="4">4 Places</option>
+                        <option value="8">Scientific</option>
+                    </select>
+                </div>
+            </div>
         </aside>
 
         <main class="app-main">
             <header class="main-header">
+                <div class="header-logo-mobile">
+                    <div class="brand-logo"><i class="fas fa-bolt"></i></div>
+                    <span class="brand-name">Omni<b>Convert</b></span>
+                </div>
                 <div class="header-info">
                     <h1 id="activeCategoryTitle">Length Engine</h1>
                     <span class="status-pill">Ready to Convert</span>
-                    <select id="categorySelect" class="category-select"></select>
                 </div>
                 
                 <div class="header-actions">
@@ -56,7 +78,8 @@
                             <div class="setting-row">
                                 <span>Precision</span>
                                 <select id="precisionSetting" class="form-select form-select-sm w-auto">
-                                    <option value="2">2 Places</option>
+                                    <option value="0">0 Places</option>
+                                    <option value="2" selected>2 Places</option>
                                     <option value="4">4 Places</option>
                                     <option value="8">Scientific</option>
                                 </select>
@@ -86,6 +109,9 @@
                             <select id="toUnit" class="unit-select"></select>
                             <div id="outputValue" class="big-output">0.00</div>
                         </div>
+                    </div>
+                    <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i> Converting...
                     </div>
                 </div>
 

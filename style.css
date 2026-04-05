@@ -615,6 +615,8 @@ body {
         margin-bottom: 0.5rem;
         gap: 0.5rem;
     }
+    .status-pill {
+        display: none;
 }
 
 @media (max-width: 768px) {

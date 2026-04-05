@@ -82,6 +82,24 @@ const units = {
         { name: "Horsepower", symbol: "hp", value: 745.7 },
         { name: "Megawatt", symbol: "MW", value: 1000000 },
         { name: "BTU per Hour", symbol: "BTU/h", value: 0.29307107 }
+    ],
+    data: [
+        { name: "Bit", symbol: "bit", value: 1 },
+        { name: "Byte", symbol: "B", value: 8 },
+        { name: "Kilobyte", symbol: "KB", value: 8192 },
+        { name: "Megabyte", symbol: "MB", value: 8388608 },
+        { name: "Gigabyte", symbol: "GB", value: 8589934592 },
+        { name: "Terabyte", symbol: "TB", value: 8796093022208 }
+    ],
+    angle: [
+        { name: "Degree", symbol: "°", value: 1 },
+        { name: "Radian", symbol: "rad", value: 57.2958 },
+        { name: "Gradian", symbol: "grad", value: 0.9 }
+    ],
+    force: [
+        { name: "Newton", symbol: "N", value: 1 },
+        { name: "Pound-force", symbol: "lbf", value: 4.44822 },
+        { name: "Kilogram-force", symbol: "kgf", value: 9.80665 }
     ]
 };
 
@@ -103,7 +121,8 @@ const topCategoryEl = document.getElementById('topCategory');
 const themeToggle = document.getElementById('themeToggle');
 const precisionSetting = document.getElementById('precisionSetting');
 const sidebarNav = document.getElementById('sidebarNav');
-const categorySelect = document.getElementById('categorySelect');
+const themeToggleMobile = document.getElementById('themeToggleMobile');
+const precisionSettingMobile = document.getElementById('precisionSettingMobile');
 
 // Hamburger Menu Toggle
 function toggleSidebar() {
@@ -144,27 +163,10 @@ function renderSidebar(filter = '') {
     });
 }
 
-// Render category dropdown in header
-function renderCategorySelect() {
-    categorySelect.innerHTML = '';
-    categories.forEach(cat => {
-        const option = document.createElement('option');
-        option.value = cat;
-        option.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
-        categorySelect.appendChild(option);
-    });
-    categorySelect.value = currentCategory;
-}
-
-categorySelect.addEventListener('change', function() {
-    selectCategory(this.value);
-});
-
 // Select Category
 function selectCategory(cat) {
     currentCategory = cat;
     topCategoryEl.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
-    categorySelect.value = cat;
     updateConverterUI();
     renderSidebar(document.getElementById('catSearch').value);
 }
@@ -197,28 +199,33 @@ function updateConverterUI() {
 
 // Convert Function
 function convert() {
-    const value = parseFloat(inputValue.value);
-    const from = fromUnit.value;
-    const to = toUnit.value;
-    
-    if (isNaN(value) || value === '') {
-        outputValue.textContent = '0.00';
-        return;
-    }
-    
-    let result;
-    const precision = parseInt(precisionSetting.value, 10);
-    
-    if (currentCategory === 'temperature') {
-        result = convertTemperature(value, from, to);
-    } else {
-        const fromData = units[currentCategory].find(u => u.name === from);
-        const toData = units[currentCategory].find(u => u.name === to);
-        result = value * fromData.value / toData.value;
-    }
-    
-    outputValue.textContent = result.toFixed(precision);
-    addHistory(value, from, result.toFixed(precision), to);
+    document.getElementById('loadingSpinner').style.display = 'block';
+    setTimeout(() => {
+        const value = parseFloat(inputValue.value);
+        const from = fromUnit.value;
+        const to = toUnit.value;
+        
+        if (isNaN(value) || value === '') {
+            outputValue.textContent = '0.00';
+            document.getElementById('loadingSpinner').style.display = 'none';
+            return;
+        }
+        
+        let result;
+        const precision = parseInt(precisionSetting.value, 10);
+        
+        if (currentCategory === 'temperature') {
+            result = convertTemperature(value, from, to);
+        } else {
+            const fromData = units[currentCategory].find(u => u.name === from);
+            const toData = units[currentCategory].find(u => u.name === to);
+            result = value * fromData.value / toData.value;
+        }
+        
+        outputValue.textContent = result.toFixed(precision);
+        addHistory(value, from, result.toFixed(precision), to);
+        document.getElementById('loadingSpinner').style.display = 'none';
+    }, 300);
 }
 
 // Temperature Conversion
@@ -306,7 +313,16 @@ themeToggle.addEventListener('change', function() {
     }
 });
 
+themeToggleMobile.addEventListener('change', function() {
+    themeToggle.checked = this.checked;
+    themeToggle.dispatchEvent(new Event('change'));
+});
+
 precisionSetting.addEventListener('change', convert);
+precisionSettingMobile.addEventListener('change', function() {
+    precisionSetting.value = this.value;
+    convert();
+});
 inputValue.addEventListener('input', convert);
 fromUnit.addEventListener('change', convert);
 toUnit.addEventListener('change', convert);
@@ -315,8 +331,8 @@ toUnit.addEventListener('change', convert);
 const savedTheme = localStorage.getItem('theme') || 'light';
 document.documentElement.setAttribute('data-theme', savedTheme);
 themeToggle.checked = savedTheme === 'dark';
+themeToggleMobile.checked = savedTheme === 'dark';
 
 // Initialize
-renderCategorySelect();
 renderSidebar();
 updateConverterUI();

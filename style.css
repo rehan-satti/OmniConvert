@@ -535,7 +535,8 @@ body {
     }
 
     .app-sidebar {
-        width: 100%;
+        width: 75%;
+        max-width: 280px;
         position: fixed;
         top: 0;
         left: -100%;
@@ -560,6 +561,7 @@ body {
 
     .header-logo-mobile {
         display: flex;
+        flex: 1;
     }
 
     .header-info {
@@ -569,6 +571,19 @@ body {
 
     .hamburger {
         display: flex;
+        order: 2;
+    }
+
+    .hamburger::after {
+        content: '✕';
+        position: absolute;
+        display: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .app-sidebar.active ~ .hamburger::after {
+        display: block;
     }
 
     .converter-layout {
@@ -588,12 +603,23 @@ body {
 
     .sidebar-settings {
         display: block;
+        padding: 0.5rem 0;
+    }
+
+    .sidebar-settings h6 {
+        font-size: 0.85rem;
+        margin: 0 0 0.5rem;
+    }
+
+    .setting-row {
+        margin-bottom: 0.5rem;
+        gap: 0.5rem;
     }
 }
 
 @media (max-width: 768px) {
     .app-sidebar {
-        padding: 1rem;
+        padding: 0.8rem;
     }
 
     .main-header,
@@ -640,6 +666,22 @@ body {
         width: 52px;
         height: 52px;
         font-size: 1rem;
+    }
+
+    .sidebar-settings {
+        padding: 0.5rem 0;
+        border-top: 1px solid var(--border);
+        margin-top: 0.5rem;
+    }
+
+    .sidebar-settings h6 {
+        font-size: 0.8rem;
+        margin: 0.5rem 0 0.4rem;
+    }
+
+    .setting-row {
+        margin-bottom: 0.4rem;
+        font-size: 0.9rem;
     }
 }
 
@@ -695,7 +737,27 @@ body {
     .output-zone label {
         font-size: 0.9rem;
     }
+
     .status-pill {
         display: none;
+    }
+
+    .app-sidebar {
+        padding: 0.8rem;
+        width: 85%;
+    }
+
+    .sidebar-settings {
+        padding: 0.4rem 0;
+    }
+
+    .sidebar-settings h6 {
+        font-size: 0.75rem;
+        margin: 0.4rem 0 0.3rem;
+    }
+
+    .setting-row {
+        margin-bottom: 0.3rem;
+        font-size: 0.85rem;
     }
 }

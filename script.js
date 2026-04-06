@@ -145,6 +145,8 @@ function renderSidebar(filter = '') {
     const lowerFilter = filter.toLowerCase();
     sidebarNav.innerHTML = '';
 
+    let hasResults = false;
+
     categories.forEach(cat => {
         const categoryUnits = units[cat];
         const matchesCategory = cat.toLowerCase().includes(lowerFilter);
@@ -159,8 +161,16 @@ function renderSidebar(filter = '') {
             navItem.innerHTML = `<i class="fas fa-exchange"></i> ${cat.charAt(0).toUpperCase() + cat.slice(1)}`;
             navItem.onclick = () => selectCategory(cat);
             sidebarNav.appendChild(navItem);
+            hasResults = true;
         }
     });
+
+    if (filter !== '' && !hasResults) {
+        const noResults = document.createElement('div');
+        noResults.className = 'no-results';
+        noResults.innerHTML = `<i class="fas fa-search"></i> No categories or units found for "${filter}"`;
+        sidebarNav.appendChild(noResults);
+    }
 }
 
 // Select Category
@@ -299,7 +309,18 @@ function clearHistory() {
 // Filter Categories
 function filterCategories() {
     const filter = document.getElementById('catSearch').value;
+    const clearBtn = document.getElementById('searchClear');
+    if (filter) {
+        clearBtn.style.display = 'block';
+    } else {
+        clearBtn.style.display = 'none';
+    }
     renderSidebar(filter);
+}
+
+function clearSearch() {
+    document.getElementById('catSearch').value = '';
+    filterCategories();
 }
 
 // Theme Toggle
@@ -336,3 +357,27 @@ themeToggleMobile.checked = savedTheme === 'dark';
 // Initialize
 renderSidebar();
 updateConverterUI();
+// Hide loading overlay on page load
+window.addEventListener('load', function() {
+    setTimeout(() => {
+        document.getElementById('loadingOverlay').style.display = 'none';
+        // Show mobile message if not closed
+        const message = document.getElementById('mobileMessage');
+        if (message && !localStorage.getItem('mobileMessageClosed')) {
+            message.style.display = 'block';
+            message.classList.add('message-show');
+        }
+        // Attract attention to input field
+        const inputField = document.getElementById('inputValue');
+        inputField.classList.add('input-attract');
+        setTimeout(() => {
+            inputField.classList.remove('input-attract');
+        }, 2000);
+    }, 2500); // Match the animation duration
+});
+
+function closeMobileMessage() {
+    const message = document.getElementById('mobileMessage');
+    message.style.display = 'none';
+    localStorage.setItem('mobileMessageClosed', 'true');
+}

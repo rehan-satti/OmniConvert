@@ -11,6 +11,15 @@
 </head>
 <body>
 
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner-large">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <h3>Loading OmniConvert...</h3>
+        </div>
+    </div>
+
     <div class="app-wrapper">
         <aside class="app-sidebar">
             <div class="sidebar-brand">
@@ -21,16 +30,21 @@
             <div class="sidebar-search">
                 <i class="fas fa-magnifying-glass"></i>
                 <input type="text" id="catSearch" placeholder="Search categories or units..." oninput="filterCategories()">
+                <button class="search-clear" id="searchClear" onclick="clearSearch()" style="display: none;"><i class="fas fa-times"></i></button>
             </div>
 
             <nav class="sidebar-nav" id="sidebarNav"></nav>
             
             <div class="sidebar-settings">
                 <h6><i class="fas fa-cog me-2"></i>Quick Settings</h6>
-                <div class="setting-row">
-                    <span>Dark Mode</span>
+                <div class="setting-row theme-toggle-row">
+                    <label class="theme-label" for="themeToggleMobile">
+                        <i class="fas fa-sun theme-icon-light"></i>
+                        <i class="fas fa-moon theme-icon-dark"></i>
+                        Dark Mode
+                    </label>
                     <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="themeToggleMobile">
+                        <input class="form-check-input theme-toggle-input" type="checkbox" id="themeToggleMobile">
                     </div>
                 </div>
                 <div class="setting-row">
@@ -54,6 +68,10 @@
                 <div class="header-info">
                     <h1 id="activeCategoryTitle">Length Engine</h1>
                     <span class="status-pill">Ready to Convert</span>
+                    <div class="mobile-category-message" id="mobileMessage">
+                        <i class="fas fa-bars"></i> Tap menu to select categories
+                        <button class="message-close" onclick="closeMobileMessage()">&times;</button>
+                    </div>
                 </div>
                 
                 <div class="header-actions">
@@ -69,10 +87,14 @@
                         <div class="dropdown-menu dropdown-menu-end settings-panel p-3">
                             <h6><i class="fas fa-cog me-2"></i>Quick Settings</h6>
                             <hr>
-                            <div class="setting-row">
-                                <span>Dark Mode</span>
+                            <div class="setting-row theme-toggle-row">
+                                <label class="theme-label" for="themeToggle">
+                                    <i class="fas fa-sun theme-icon-light"></i>
+                                    <i class="fas fa-moon theme-icon-dark"></i>
+                                    Dark Mode
+                                </label>
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="themeToggle">
+                                    <input class="form-check-input theme-toggle-input" type="checkbox" id="themeToggle">
                                 </div>
                             </div>
                             <div class="setting-row">

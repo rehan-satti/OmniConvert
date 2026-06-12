@@ -108,10 +108,10 @@ let currentCategory = 'length';
 let history = [];
 let calcCount = 0;
 
-const hamburgerBtn = document.getElementById('hamburgerBtn');
 const overlay = document.getElementById('overlay');
 const sidebar = document.querySelector('.app-sidebar');
 const inputValue = document.getElementById('inputValue');
+const mobileCategorySelect = document.getElementById('mobileCategorySelect');
 const outputValue = document.getElementById('outputValue');
 const fromUnit = document.getElementById('fromUnit');
 const toUnit = document.getElementById('toUnit');
@@ -124,14 +124,12 @@ const sidebarNav = document.getElementById('sidebarNav');
 const themeToggleMobile = document.getElementById('themeToggleMobile');
 const precisionSettingMobile = document.getElementById('precisionSettingMobile');
 
-// Hamburger Menu Toggle
+// Sidebar Overlay Toggle
 function toggleSidebar() {
     sidebar.classList.toggle('active');
     overlay.classList.toggle('active');
-    hamburgerBtn.classList.toggle('active');
 }
 
-hamburgerBtn.addEventListener('click', toggleSidebar);
 overlay.addEventListener('click', toggleSidebar);
 
 document.addEventListener('click', function(event) {
@@ -144,6 +142,19 @@ document.addEventListener('click', function(event) {
 function renderSidebar(filter = '') {
     const lowerFilter = filter.toLowerCase();
     sidebarNav.innerHTML = '';
+    
+    if (filter === '' && mobileCategorySelect && mobileCategorySelect.options.length === 0) {
+        categories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+            mobileCategorySelect.appendChild(option);
+        });
+        
+        mobileCategorySelect.addEventListener('change', (e) => {
+            selectCategory(e.target.value);
+        });
+    }
 
     let hasResults = false;
 
@@ -177,6 +188,7 @@ function renderSidebar(filter = '') {
 function selectCategory(cat) {
     currentCategory = cat;
     topCategoryEl.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+    if (mobileCategorySelect) mobileCategorySelect.value = cat;
     updateConverterUI();
     renderSidebar(document.getElementById('catSearch').value);
 }
@@ -361,12 +373,6 @@ updateConverterUI();
 window.addEventListener('load', function() {
     setTimeout(() => {
         document.getElementById('loadingOverlay').style.display = 'none';
-        // Show mobile message if not closed
-        const message = document.getElementById('mobileMessage');
-        if (message && !localStorage.getItem('mobileMessageClosed')) {
-            message.style.display = 'block';
-            message.classList.add('message-show');
-        }
         // Attract attention to input field
         const inputField = document.getElementById('inputValue');
         inputField.classList.add('input-attract');
@@ -376,8 +382,3 @@ window.addEventListener('load', function() {
     }, 2500); // Match the animation duration
 });
 
-function closeMobileMessage() {
-    const message = document.getElementById('mobileMessage');
-    message.style.display = 'none';
-    localStorage.setItem('mobileMessageClosed', 'true');
-}

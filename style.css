@@ -1,0 +1,194 @@
+/* ============================================
+   OmniConvert - Smooth Animations & Realistic Styles
+   ============================================ */
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Real Calculator Keypad Styles */
+.real-calc-body {
+  background: linear-gradient(145deg, #1e293b, #0f172a);
+  border: 2px solid #334155;
+  box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+.calc-screen {
+  background: #0f172a;
+  border: 1px solid #334155;
+  box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.6);
+}
+
+.calc-btn-key {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem 0.5rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+  font-weight: 700;
+  border-radius: 0.75rem;
+  user-select: none;
+  transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 3px 0 0 rgba(0, 0, 0, 0.15), 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.calc-btn-key:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 0 rgba(0, 0, 0, 0.12), 0 8px 12px -2px rgba(0, 0, 0, 0.15);
+}
+
+.calc-btn-key:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Key Color Variations */
+.calc-key-num {
+  background-color: #ffffff;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+}
+.calc-key-num:hover {
+  background-color: #f8fafc;
+  color: #2563eb;
+  border-color: #93c5fd;
+}
+
+.calc-key-fn {
+  background-color: #334155;
+  color: #f8fafc;
+  border: 1px solid #475569;
+  font-size: 0.8rem;
+}
+.calc-key-fn:hover {
+  background-color: #475569;
+  color: #60a5fa;
+}
+
+.calc-key-op {
+  background-color: #2563eb;
+  color: #ffffff;
+  border: 1px solid #1d4ed8;
+}
+.calc-key-op:hover {
+  background-color: #1d4ed8;
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.4);
+}
+
+.calc-key-clear {
+  background-color: #ef4444;
+  color: #ffffff;
+  border: 1px solid #dc2626;
+}
+.calc-key-clear:hover {
+  background-color: #dc2626;
+}
+
+.calc-key-del {
+  background-color: #f59e0b;
+  color: #ffffff;
+  border: 1px solid #d97706;
+}
+.calc-key-del:hover {
+  background-color: #d97706;
+}
+
+.calc-key-equals {
+  background-color: #10b981;
+  color: #ffffff;
+  border: 1px solid #059669;
+  font-size: 1.1rem;
+}
+.calc-key-equals:hover {
+  background-color: #059669;
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.4);
+}
+
+/* Card Hover & Smooth Transition FX */
+.tool-section {
+  animation: fadeInSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeInSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tool-quick-card {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.tool-quick-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 20px -8px rgba(37, 99, 235, 0.15);
+}
+
+/* Modal Animations */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-in {
+  animation: fadeInScale 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Toast Animations */
+@keyframes toastSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.toast-item {
+  animation: toastSlide 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: auto;
+}

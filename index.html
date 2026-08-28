@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50 text-slate-900 font-sans antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OmniConvert - Real-Time Precision Tool Suite</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          screens: {
+            'xs': '400px',
+            'sm': '640px',
+            'md': '768px',
+            'lg': '1024px',
+            'xl': '1280px',
+          },
+          extend: {
+            colors: {
+              brand: {
+                50: '#f0f5ff',
+                100: '#e0ebff',
+                200: '#bae0fd',
+                500: '#3b82f6',
+                600: '#2563eb',
+                700: '#1d4ed8',
+                800: '#1e40af',
+                900: '#1e3a8a',
+              }
+            },
+            fontFamily: {
+              sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            }
+          }
+        }
+      }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="h-full flex flex-col bg-slate-50 text-slate-900 overflow-x-hidden selection:bg-brand-600 selection:text-white">
+
+    <!-- Application Startup Loading Overlay -->
+    <div id="appLoader" class="fixed inset-0 z-[100] bg-slate-900 flex flex-col items-center justify-center transition-opacity duration-700 ease-out">
+        <div class="flex flex-col items-center space-y-4 text-center p-6">
+            <div class="relative flex items-center justify-center">
+                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-brand-600 text-white flex items-center justify-center text-2xl sm:text-3xl font-bold shadow-2xl shadow-brand-500/50 animate-bounce">
+                    <i class="fas fa-cube"></i>
+                </div>
+                <div class="absolute -inset-3 rounded-3xl border-2 border-brand-500/40 animate-ping pointer-events-none"></div>
+            </div>
+            <div>
+                <h1 class="text-2xl font-extrabold text-white tracking-tight">Omni<span class="text-brand-500">Convert</span></h1>
+                <p class="text-xs text-slate-400 font-medium tracking-wider uppercase mt-1">Real-Time Precision Suite</p>
+            </div>
+            <!-- Progress Bar -->
+            <div class="w-48 h-1 bg-slate-800 rounded-full overflow-hidden mt-2">
+                <div id="loaderProgress" class="h-full bg-brand-500 w-0 transition-all duration-500 ease-out"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none max-w-xs sm:max-w-md w-full px-2 sm:px-0"></div>
+
+    <!-- Quick Search Command Palette Modal -->
+    <div id="commandPalette" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-start justify-center pt-6 sm:pt-16 px-2.5 sm:px-4 hidden transition-opacity">
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in">
+            <div class="p-3 sm:p-4 border-b border-slate-200 flex items-center gap-2.5 sm:gap-3">
+                <i class="fas fa-search text-slate-400 text-sm sm:text-base"></i>
+                <input type="text" id="cmdInput" placeholder="Search converters and tools (e.g. USD, length, calculator)..." class="w-full text-slate-900 text-xs sm:text-base placeholder-slate-400 bg-transparent outline-none">
+                <button id="closeCmdBtn" class="text-slate-400 hover:text-slate-600 p-1 shrink-0">
+                    <i class="fas fa-times text-base"></i>
+                </button>
+            </div>
+            <div id="cmdResults" class="overflow-y-auto p-2 divide-y divide-slate-100 max-h-[60vh]">
+                <!-- Populated dynamically -->
+            </div>
+            <div class="px-4 py-2 bg-slate-50 border-t border-slate-200 text-[11px] sm:text-xs text-slate-500 flex justify-between items-center">
+                <span>Select tool to switch</span>
+                <span class="font-semibold text-brand-600">OmniConvert</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Wrapper -->
+    <div class="flex h-screen w-screen overflow-hidden">
+
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="w-72 bg-white border-r border-slate-200 flex flex-col transition-all duration-300 z-30 fixed lg:relative h-full shrink-0 -translate-x-full lg:translate-x-0 shadow-xs">
+            <!-- Sidebar Header -->
+            <div class="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-brand-500/20">
+                        <i class="fas fa-cube"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-extrabold text-lg text-slate-900 leading-none">Omni<span class="text-brand-600">Convert</span></h1>
+                        <span class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">Real-Time Suite</span>
+                    </div>
+                </div>
+                <button id="closeSidebarMobile" class="lg:hidden text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Global Filter Search -->
+            <div class="p-3 border-b border-slate-100">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="catSearch" placeholder="Search tool or unit..." class="w-full pl-9 pr-8 py-2 text-xs bg-slate-100 text-slate-800 placeholder-slate-400 rounded-lg border border-transparent focus:bg-white focus:border-brand-500 focus:outline-none transition">
+                    <button id="searchClear" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 hidden text-xs">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav id="sidebarNav" class="flex-1 overflow-y-auto p-3 space-y-4 custom-scrollbar">
+                <!-- Populated via JavaScript -->
+            </nav>
+
+            <!-- Sidebar Footer Info -->
+            <div class="p-3.5 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-600">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="font-medium">160+ World Currencies</span>
+                </div>
+                <span class="font-mono text-[10px] text-slate-400">v3.7.0</span>
+            </div>
+        </aside>
+
+        <!-- Sidebar Mobile Overlay -->
+        <div id="sidebarOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-20 hidden lg:hidden"></div>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 min-w-0">
+            
+            <!-- Sticky Header -->
+            <header class="bg-white border-b border-slate-200 px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between shrink-0 shadow-xs z-10">
+                <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <button id="toggleSidebar" class="lg:hidden text-slate-600 hover:text-slate-900 p-1.5 rounded-lg hover:bg-slate-100 focus:outline-none shrink-0">
+                        <i class="fas fa-bars text-lg"></i>
+                    </button>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                            <h2 id="activeCategoryTitle" class="text-sm sm:text-lg font-bold text-slate-900 truncate">Length Converter</h2>
+                            <span id="statusPill" class="hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live Output
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Bar -->
+                <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <!-- Standard Quick Search Button -->
+                    <button id="openCmdPalette" class="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition">
+                        <i class="fas fa-search text-slate-500"></i>
+                        <span class="hidden xs:inline">Search Tools</span>
+                    </button>
+
+                    <!-- Real-Time Calculations Badge -->
+                    <div class="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 bg-brand-50 border border-brand-200 text-brand-700 rounded-lg text-xs font-semibold">
+                        <i class="fas fa-bolt text-brand-600"></i>
+                        <span id="calcCount">0</span> <span class="hidden lg:inline">Calculations</span>
+                    </div>
+
+                    <!-- History Drawer Toggle -->
+                    <button id="toggleHistory" class="p-1.5 sm:p-2 text-slate-600 hover:text-brand-600 hover:bg-slate-100 rounded-lg border border-slate-200 relative transition" title="Activity History">
+                        <i class="fas fa-history text-sm sm:text-base"></i>
+                        <span id="historyBadge" class="absolute -top-1 -right-1 bg-brand-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold hidden">0</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Real-Time Forex Ticker Banner -->
+            <div id="forexTicker" class="bg-slate-900 text-white py-1.5 px-3 sm:px-4 text-xs flex items-center justify-between overflow-hidden shrink-0">
+                <div class="flex items-center gap-2 text-emerald-400 font-semibold text-[11px] uppercase tracking-wider shrink-0">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Live FX
+                </div>
+                <div id="tickerContent" class="flex items-center gap-3 sm:gap-6 overflow-x-auto no-scrollbar font-mono text-[11px] whitespace-nowrap px-2 text-slate-300">
+                    <!-- Updated via JS -->
+                    <span>USD/EUR: <strong class="text-white">0.924</strong></span>
+                    <span>USD/GBP: <strong class="text-white">0.789</strong></span>
+                    <span>USD/JPY: <strong class="text-white">149.65</strong></span>
+                    <span>USD/PKR: <strong class="text-white">278.50</strong></span>
+                    <span>USD/INR: <strong class="text-white">83.12</strong></span>
+                </div>
+                <div class="text-[10px] text-slate-400 shrink-0 hidden md:block">Real-time sync</div>
+            </div>
+
+            <!-- Workspace Scrollable Body -->
+            <main class="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
+
+                <!-- Featured Tools Quick Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
+                    <button onclick="switchToCategory('length')" class="tool-quick-card bg-white p-2.5 sm:p-3.5 rounded-xl border border-slate-200 hover:border-brand-500 hover:shadow-md transition text-left flex flex-col justify-between group">
+                        <div class="flex items-center justify-between mb-1.5 sm:mb-2">
+                            <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs sm:text-sm font-semibold group-hover:bg-blue-600 group-hover:text-white transition"><i class="fas fa-ruler"></i></span>
+                            <i class="fas fa-arrow-right text-[10px] sm:text-xs text-slate-300 group-hover:text-brand-600 transition"></i>
+                        </div>
+                        <span class="font-bold text-[11px] sm:text-xs text-slate-800 truncate">Unit Converter</span>
+                        <span class="text-[10px] sm:text-[11px] text-slate-500 truncate">18+ Categories</span>
+                    </button>
+
+                    <button onclick="switchToCategory('currency')" class="tool-quick-card bg-white p-2.5 sm:p-3.5 rounded-xl border border-slate-200 hover:border-brand-500 hover:shadow-md transition text-left flex flex-col justify-between group">
+                        <div class="flex items-center justify-between mb-1.5 sm:mb-2">
+                            <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs sm:text-sm font-semibold group-hover:bg-emerald-600 group-hover:text-white transition"><i class="fas fa-dollar-sign"></i></span>
+                            <i class="fas fa-arrow-right text-[10px] sm:text-xs text-slate-300 group-hover:text-brand-600 transition"></i>
+                        </div>
+                        <span class="font-bold text-[11px] sm:text-xs text-slate-800 truncate">All Currencies</span>
+                        <span class="text-[10px] sm:text-[11px] text-slate-500 truncate">160+ Countries</span>
+                    </button>
+
+                    <button onclick="switchToCategory('calculator')" class="tool-quick-card bg-white p-2.5 sm:p-3.5 rounded-xl border border-slate-200 hover:border-brand-500 hover:shadow-md transition text-left flex flex-col justify-between group">
+                        <div class="flex items-center justify-between mb-1.5 sm:mb-2">
+                            <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-xs sm:text-sm font-semibold group-hover:bg-purple-600 group-hover:text-white transition"><i class="fas fa-calculator"></i></span>
+                            <i class="fas fa-arrow-right text-[10px] sm:text-xs text-slate-300 group-hover:text-brand-600 transition"></i>
+                        </div>
+                        <span class="font-bold text-[11px] sm:text-xs text-slate-800 truncate">Scientific Calc</span>
+                        <span class="text-[10px] sm:text-[11px] text-slate-500 truncate">Math + Canvas</span>
+                    </button>
+
+                    <button onclick="switchToCategory('math-solver')" class="tool-quick-card bg-white p-2.5 sm:p-3.5 rounded-xl border border-slate-200 hover:border-brand-500 hover:shadow-md transition text-left flex flex-col justify-between group">
+                        <div class="flex items-center justify-between mb-1.5 sm:mb-2">
+                            <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xs sm:text-sm font-semibold group-hover:bg-amber-600 group-hover:text-white transition"><i class="fas fa-square-root-variable"></i></span>
+                            <i class="fas fa-arrow-right text-[10px] sm:text-xs text-slate-300 group-hover:text-brand-600 transition"></i>
+                        </div>
+                        <span class="font-bold text-[11px] sm:text-xs text-slate-800 truncate">Math Solver</span>
+                        <span class="text-[10px] sm:text-[11px] text-slate-500 truncate">Step-by-step</span>
+                    </button>
+
+                    <button onclick="switchToCategory('finance')" class="tool-quick-card bg-white p-2.5 sm:p-3.5 rounded-xl border border-slate-200 hover:border-brand-500 hover:shadow-md transition text-left flex flex-col justify-between group">
+                        <div class="flex items-center justify-between mb-1.5 sm:mb-2">
+                            <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center text-xs sm:text-sm font-semibold group-hover:bg-teal-600 group-hover:text-white transition"><i class="fas fa-chart-pie"></i></span>
+                            <i class="fas fa-arrow-right text-[10px] sm:text-xs text-slate-300 group-hover:text-brand-600 transition"></i>
+                        </div>
+                        <span class="font-bold text-[11px] sm:text-xs text-slate-800 truncate">Finance Suite</span>
+                        <span class="text-[10px] sm:text-[11px] text-slate-500 truncate">Loan & Interest</span>
+                    </button>
+
+                    <button onclick="switchToCategory('developer')" class="tool-quick-card bg-white p-2.5 sm:p-3.5 rounded-xl border border-slate-200 hover:border-brand-500 hover:shadow-md transition text-left flex flex-col justify-between group">
+                        <div class="flex items-center justify-between mb-1.5 sm:mb-2">
+                            <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs sm:text-sm font-semibold group-hover:bg-indigo-600 group-hover:text-white transition"><i class="fas fa-code"></i></span>
+                            <i class="fas fa-arrow-right text-[10px] sm:text-xs text-slate-300 group-hover:text-brand-600 transition"></i>
+                        </div>
+                        <span class="font-bold text-[11px] sm:text-xs text-slate-800 truncate">Developer Tools</span>
+                        <span class="text-[10px] sm:text-[11px] text-slate-500 truncate">Base & Colors</span>
+                    </button>
+                </div>
+
+                <!-- SECTION 1: UNIT CONVERTER -->
+                <section id="converterSection" class="tool-section space-y-4 sm:space-y-6">
+                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-3.5 sm:p-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3.5 mb-4 sm:mb-6 gap-2.5">
+                            <div class="flex items-center gap-3">
+                                <span class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center text-base sm:text-lg font-bold shrink-0">
+                                    <i id="converterIcon" class="fas fa-exchange-alt"></i>
+                                </span>
+                                <div>
+                                    <h3 id="converterTitle" class="text-sm sm:text-base font-bold text-slate-900">Length Unit Converter</h3>
+                                    <p class="text-xs text-slate-500">Real-time instant calculation with multi-unit matrix</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 self-start sm:self-auto">
+                                <label class="text-xs font-semibold text-slate-500">Decimals:</label>
+                                <select id="precisionSetting" class="text-xs bg-slate-50 border border-slate-300 rounded-lg px-2 py-1 font-mono font-medium focus:ring-2 focus:ring-brand-500">
+                                    <option value="0">0 (Integer)</option>
+                                    <option value="2" selected>2 Places</option>
+                                    <option value="4">4 Places</option>
+                                    <option value="6">6 Places</option>
+                                    <option value="8">Scientific</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Converter Interactive Controls Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-3.5 sm:gap-4 items-center">
+                            <!-- FROM input zone -->
+                            <div class="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200 space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <label class="text-xs font-bold uppercase tracking-wider text-slate-500">From</label>
+                                    <span id="fromSymbolBadge" class="text-xs font-mono font-semibold px-2 py-0.5 bg-white border border-slate-200 rounded text-brand-600">m</span>
+                                </div>
+                                <select id="fromUnit" class="w-full bg-white border border-slate-300 text-slate-900 font-medium rounded-lg p-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none shadow-xs"></select>
+                                <input type="number" id="inputValue" value="0" placeholder="0" class="w-full bg-white border border-slate-300 rounded-lg p-2.5 sm:p-3 text-xl sm:text-2xl font-bold font-mono text-slate-900 focus:ring-2 focus:ring-brand-500 focus:outline-none shadow-xs">
+                            </div>
+
+                            <!-- SWAP button -->
+                            <div class="flex justify-center my-1 md:my-0">
+                                <button onclick="swapUnits()" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-brand-600 text-white hover:bg-brand-700 shadow-md shadow-brand-500/30 flex items-center justify-center text-sm sm:text-base transition transform hover:rotate-180">
+                                    <i class="fas fa-right-left"></i>
+                                </button>
+                            </div>
+
+                            <!-- TO output zone -->
+                            <div class="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200 space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <label class="text-xs font-bold uppercase tracking-wider text-slate-500">To</label>
+                                    <span id="toSymbolBadge" class="text-xs font-mono font-semibold px-2 py-0.5 bg-white border border-slate-200 rounded text-emerald-600">ft</span>
+                                </div>
+                                <select id="toUnit" class="w-full bg-white border border-slate-300 text-slate-900 font-medium rounded-lg p-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none shadow-xs"></select>
+                                <div class="flex items-center justify-between bg-white border border-slate-300 rounded-lg p-2.5 sm:p-3 shadow-xs min-w-0">
+                                    <div id="outputValue" class="text-xl sm:text-2xl font-bold font-mono text-brand-600 truncate">0.00</div>
+                                    <button onclick="copyToClipboard(document.getElementById('outputValue').innerText)" class="text-slate-400 hover:text-brand-600 p-1 transition shrink-0" title="Copy Output">
+                                        <i class="far fa-copy text-base sm:text-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Real-Time Formula Explanation Pill -->
+                        <div class="mt-3.5 sm:mt-4 p-3 bg-brand-50 border border-brand-100 rounded-xl flex items-center justify-between text-xs text-brand-800 flex-wrap gap-2">
+                            <div class="flex items-center gap-2 truncate">
+                                <i class="fas fa-info-circle text-brand-600 shrink-0"></i>
+                                <span id="formulaText" class="truncate">1 Meter = 3.28084 Feet</span>
+                            </div>
+                            <span class="font-semibold text-brand-600 shrink-0">Instant Real-Time</span>
+                        </div>
+                    </div>
+
+                    <!-- REAL-TIME MULTI-UNIT MATRIX -->
+                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-3.5 sm:p-6">
+                        <div class="flex items-center justify-between mb-3.5 sm:mb-4">
+                            <h4 class="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-2">
+                                <i class="fas fa-th-large text-brand-600"></i> Simultaneous Unit Matrix
+                            </h4>
+                            <span class="text-[11px] text-slate-500 hidden xs:inline">Concurrently calculated</span>
+                        </div>
+                        <div id="unitMatrixGrid" class="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3">
+                            <!-- Matrix items populated via JS -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION 2: ALL COUNTRY CURRENCY CONVERTER -->
+                <section id="currencySection" class="tool-section space-y-4 sm:space-y-6 hidden">
+                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-3.5 sm:p-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3.5 mb-4 sm:mb-6 gap-2.5">
+                            <div class="flex items-center gap-3">
+                                <span class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-base sm:text-lg font-bold shrink-0">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </span>
+                                <div>
+                                    <h3 class="text-sm sm:text-base font-bold text-slate-900">All Country Currency Converter</h3>
+                                    <p class="text-xs text-slate-500">Instant real-time rates for 160+ world currencies & countries</p>
+                                </div>
+                            </div>
+                            <button onclick="fetchLiveCurrencyRates()" class="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition self-start sm:self-auto">
+                                <i class="fas fa-sync-alt text-emerald-600"></i> Refresh Rates
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-3.5 sm:gap-4 items-center">
+                            <div class="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200 space-y-2">
+                                <label class="text-xs font-bold uppercase tracking-wider text-slate-500">From Currency</label>
+                                <input type="number" id="currencyAmount" value="0" placeholder="0" class="w-full bg-white border border-slate-300 rounded-lg p-2.5 sm:p-3 text-xl sm:text-2xl font-bold font-mono text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                <select id="currencyFrom" class="w-full bg-white border border-slate-300 text-slate-900 font-medium rounded-lg p-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"></select>
+                            </div>
+
+                            <div class="flex justify-center my-1 md:my-0">
+                                <button onclick="swapCurrency()" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 shadow-md flex items-center justify-center text-sm sm:text-base transition transform hover:rotate-180">
+                                    <i class="fas fa-right-left"></i>
+                                </button>
+                            </div>
+
+                            <div class="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200 space-y-2">
+                                <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Converted Output</label>
+                                <div class="flex items-center justify-between bg-white border border-slate-300 rounded-lg p-2.5 sm:p-3 shadow-xs min-w-0">
+                                    <div id="currencyOutput" class="text-xl sm:text-2xl font-bold font-mono text-emerald-600 truncate">0.00</div>
+                                    <button onclick="copyToClipboard(document.getElementById('currencyOutput').innerText)" class="text-slate-400 hover:text-emerald-600 p-1 shrink-0">
+                                        <i class="far fa-copy text-base sm:text-lg"></i>
+                                    </button>
+                                </div>
+                                <select id="currencyTo" class="w-full bg-white border border-slate-300 text-slate-900 font-medium rounded-lg p-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"></select>
+                            </div>
+                        </div>
+
+                        <div class="mt-3.5 sm:mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-xs text-emerald-900 flex-wrap gap-2">
+                            <span id="exchangeRate" class="font-mono font-semibold">1 USD = 0.924 EUR</span>
+                            <span id="lastFxUpdate" class="text-[11px] text-emerald-700">Updated: Real-Time</span>
+                        </div>
+                    </div>
+
+                    <!-- Popular Exchange Rates Grid -->
+                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-3.5 sm:p-6">
+                        <div class="flex items-center justify-between mb-3.5 sm:mb-4">
+                            <h4 class="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-2">
+                                <i class="fas fa-globe text-emerald-600"></i> World Major Currencies Matrix
+                            </h4>
+                            <span class="text-[11px] text-slate-500">Relative to base currency</span>
+                        </div>
+                        <div id="currencyGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION 3: SCIENTIFIC CALCULATOR & CANVAS GRAPH -->
+                <section id="calculatorSection" class="tool-section space-y-4 sm:space-y-6 hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+                        <!-- Handheld Real Scientific Calculator -->
+                        <div class="lg:col-span-7 real-calc-body rounded-2xl p-3 sm:p-6 space-y-3 sm:space-y-4 shadow-xl">
+                            <!-- Calculator Header Branding -->
+                            <div class="flex items-center justify-between border-b border-slate-700/60 pb-2.5 sm:pb-3">
+                                <div class="flex items-center gap-1.5 sm:gap-2">
+                                    <span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500 inline-block"></span>
+                                    <span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-amber-500 inline-block"></span>
+                                    <span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-500 inline-block"></span>
+                                    <h3 class="text-[11px] sm:text-sm font-extrabold text-slate-300 font-mono tracking-widest uppercase ml-1 sm:ml-2 truncate">OmniFX-991 Scientific</h3>
+                                </div>
+                                <span class="text-[9px] sm:text-[10px] bg-slate-800 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded font-mono font-bold shrink-0">DUAL POWER</span>
+                            </div>
+
+                            <!-- OLED LCD Display Screen -->
+                            <div class="calc-screen rounded-xl p-3 sm:p-4 space-y-1 font-mono text-right text-white relative">
+                                <div class="flex justify-between items-center text-[10px] text-slate-400 border-b border-slate-800 pb-1">
+                                    <span class="text-emerald-400 font-bold">DEG</span>
+                                    <span class="text-brand-400">REAL TIME ENGINE</span>
+                                </div>
+                                <div id="calcHistory" class="text-xs text-slate-400 h-5 overflow-hidden font-mono"></div>
+                                <div id="calcCurrent" class="text-xl sm:text-3xl font-extrabold tracking-wider overflow-x-auto text-emerald-400 py-0.5 sm:py-1">0</div>
+                            </div>
+
+                            <!-- Real Calculator Tactile Keypad Matrix -->
+                            <div class="space-y-1.5 sm:space-y-2">
+                                <!-- Row 1: Trigonometric Functions -->
+                                <div class="grid grid-cols-5 gap-1.5 sm:gap-2">
+                                    <button onclick="calcFunc('sin')" class="calc-btn-key calc-key-fn">sin</button>
+                                    <button onclick="calcFunc('cos')" class="calc-btn-key calc-key-fn">cos</button>
+                                    <button onclick="calcFunc('tan')" class="calc-btn-key calc-key-fn">tan</button>
+                                    <button onclick="calcOp('^')" class="calc-btn-key calc-key-fn">x^y</button>
+                                    <button onclick="calcClear()" class="calc-btn-key calc-key-clear">AC</button>
+                                </div>
+                                <!-- Row 2: Inverse Trig & Roots -->
+                                <div class="grid grid-cols-5 gap-1.5 sm:gap-2">
+                                    <button onclick="calcFunc('asin')" class="calc-btn-key calc-key-fn">sin⁻¹</button>
+                                    <button onclick="calcFunc('acos')" class="calc-btn-key calc-key-fn">cos⁻¹</button>
+                                    <button onclick="calcFunc('atan')" class="calc-btn-key calc-key-fn">tan⁻¹</button>
+                                    <button onclick="calcFunc('sqrt')" class="calc-btn-key calc-key-fn">√</button>
+                                    <button onclick="calcBackspace()" class="calc-btn-key calc-key-del">DEL</button>
+                                </div>
+                                <!-- Row 3: Logarithms & Constants -->
+                                <div class="grid grid-cols-5 gap-1.5 sm:gap-2">
+                                    <button onclick="calcFunc('log')" class="calc-btn-key calc-key-fn">log</button>
+                                    <button onclick="calcFunc('ln')" class="calc-btn-key calc-key-fn">ln</button>
+                                    <button onclick="calcFunc('pi')" class="calc-btn-key calc-key-fn">π</button>
+                                    <button onclick="calcFunc('e')" class="calc-btn-key calc-key-fn">e</button>
+                                    <button onclick="calcOp('/')" class="calc-btn-key calc-key-op">÷</button>
+                                </div>
+                                <!-- Row 4: Digits 7-9 & Multiplication -->
+                                <div class="grid grid-cols-5 gap-1.5 sm:gap-2">
+                                    <button onclick="calcInput('7')" class="calc-btn-key calc-key-num">7</button>
+                                    <button onclick="calcInput('8')" class="calc-btn-key calc-key-num">8</button>
+                                    <button onclick="calcInput('9')" class="calc-btn-key calc-key-num">9</button>
+                                    <button onclick="calcOp('(')" class="calc-btn-key calc-key-fn">(</button>
+                                    <button onclick="calcOp('*')" class="calc-btn-key calc-key-op">×</button>
+                                </div>
+                                <!-- Row 5: Digits 4-6 & Subtraction -->
+                                <div class="grid grid-cols-5 gap-1.5 sm:gap-2">
+                                    <button onclick="calcInput('4')" class="calc-btn-key calc-key-num">4</button>
+                                    <button onclick="calcInput('5')" class="calc-btn-key calc-key-num">5</button>
+                                    <button onclick="calcInput('6')" class="calc-btn-key calc-key-num">6</button>
+                                    <button onclick="calcOp(')')" class="calc-btn-key calc-key-fn">)</button>
+                                    <button onclick="calcOp('-')" class="calc-btn-key calc-key-op">−</button>
+                                </div>
+                                <!-- Row 6: Digits 1-3 & Addition -->
+                                <div class="grid grid-cols-5 gap-1.5 sm:gap-2">
+                                    <button onclick="calcInput('1')" class="calc-btn-key calc-key-num">1</button>
+                                    <button onclick="calcInput('2')" class="calc-btn-key calc-key-num">2</button>
+                                    <button onclick="calcInput('3')" class="calc-btn-key calc-key-num">3</button>
+                                    <button onclick="calcFunc('square')" class="calc-btn-key calc-key-fn">x²</button>
+                                    <button onclick="calcOp('+')" class="calc-btn-key calc-key-op">+</button>
+                                </div>
+                                <!-- Row 7: Zero, Decimal, Factorial & Equals -->
+                                <div class="grid grid-cols-5 gap-1.5 sm:gap-2">
+                                    <button onclick="calcInput('0')" class="calc-btn-key calc-key-num col-span-2">0</button>
+                                    <button onclick="calcInput('.')" class="calc-btn-key calc-key-num">.</button>
+                                    <button onclick="calcFunc('factorial')" class="calc-btn-key calc-key-fn">n!</button>
+                                    <button onclick="calcEquals()" class="calc-btn-key calc-key-equals">=</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Canvas Function Plotter Column -->
+                        <div class="lg:col-span-5 bg-white border border-slate-200 rounded-2xl shadow-sm p-3.5 sm:p-6 flex flex-col space-y-3 sm:space-y-4">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                                    <i class="fas fa-chart-line text-brand-600"></i> Interactive Math Grapher
+                                </h3>
+                                <span class="text-xs text-slate-400">y = f(x)</span>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Function y =</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="graphFuncInput" value="sin(x)" placeholder="e.g. sin(x), x^2 - 4, cos(x)" class="flex-1 bg-slate-50 border border-slate-300 font-mono text-xs sm:text-sm rounded-lg p-2.5 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                                    <button onclick="plotGraph()" class="px-3.5 py-2 bg-brand-600 text-white font-semibold rounded-lg text-xs hover:bg-brand-700 transition">Plot</button>
+                                </div>
+                            </div>
+
+                            <div class="flex-1 min-h-[200px] sm:min-h-[260px] bg-slate-900 rounded-xl p-2 relative flex items-center justify-center overflow-hidden">
+                                <canvas id="graphCanvas" class="w-full h-full rounded-lg"></canvas>
+                            </div>
+                            <div class="flex justify-between text-[11px] text-slate-500 font-mono">
+                                <span>Preset: sin(x)</span>
+                                <span>Domain: [-10, 10]</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION 4: MATH & EQUATION SOLVER -->
+                <section id="mathSolverSection" class="tool-section space-y-4 sm:space-y-6 hidden">
+                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-3.5 sm:p-6">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3.5 mb-4 sm:mb-6">
+                            <div class="flex items-center gap-3">
+                                <span class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-base sm:text-lg font-bold shrink-0">
+                                    <i class="fas fa-square-root-variable"></i>
+                                </span>
+                                <div>
+                                    <h3 class="text-sm sm:text-base font-bold text-slate-900">Step-by-Step Equation Solver</h3>
+                                    <p class="text-xs text-slate-500">Solves linear and quadratic equations in real time</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Solver Mode Switcher -->
+                        <div class="flex gap-2 mb-4 sm:mb-6 border-b border-slate-200 pb-3 overflow-x-auto">
+                            <button onclick="switchSolverTab('linear')" id="solverTabLinear" class="solver-tab-btn active px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-bold rounded-lg bg-amber-600 text-white shrink-0">Linear (ax + b = c)</button>
+                            <button onclick="switchSolverTab('quadratic')" id="solverTabQuadratic" class="solver-tab-btn px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-bold rounded-lg text-slate-600 hover:bg-slate-100 shrink-0">Quadratic (ax² + bx + c = 0)</button>
+                        </div>
+
+                        <!-- Linear Panel -->
+                        <div id="solverPanelLinear" class="space-y-4">
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 items-center max-w-xl">
+                                <div>
+                                    <label class="text-xs text-slate-500 font-semibold">a (coef)</label>
+                                    <input type="number" id="linA" value="0" placeholder="0" oninput="solveLinear()" class="w-full bg-slate-50 border border-slate-300 font-mono text-xs sm:text-sm rounded-lg p-2.5">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-slate-500 font-semibold">b (const)</label>
+                                    <input type="number" id="linB" value="0" placeholder="0" oninput="solveLinear()" class="w-full bg-slate-50 border border-slate-300 font-mono text-xs sm:text-sm rounded-lg p-2.5">
+                                </div>
+                                <div class="col-span-2 sm:col-span-2">
+                                    <label class="text-xs text-slate-500 font-semibold">= c</label>
+                                    <input type="number" id="linC" value="0" placeholder="0" oninput="solveLinear()" class="w-full bg-slate-50 border border-slate-300 font-mono text-xs sm:text-sm rounded-lg p-2.5">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quadratic Panel -->
+                        <div id="solverPanelQuadratic" class="space-y-4 hidden">
+                            <div class="grid grid-cols-3 gap-2.5 sm:gap-3 items-center max-w-xl">
+                                <div>
+                                    <label class="text-xs text-slate-500 font-semibold">a (x² term)</label>
+                                    <input type="number" id="quadA" value="0" placeholder="0" oninput="solveQuadratic()" class="w-full bg-slate-50 border border-slate-300 font-mono text-xs sm:text-sm rounded-lg p-2.5">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-slate-500 font-semibold">b (x term)</label>
+                                    <input type="number" id="quadB" value="0" placeholder="0" oninput="solveQuadratic()" class="w-full bg-slate-50 border border-slate-300 font-mono text-xs sm:text-sm rounded-lg p-2.5">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-slate-500 font-semibold">c (const)</label>
+                                    <input type="number" id="quadC" value="0" placeholder="0" oninput="solveQuadratic()" class="w-full bg-slate-50 border border-slate-300 font-mono text-xs sm:text-sm rounded-lg p-2.5">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Output Step Resolution Box -->
+                        <div id="solverOutput" class="mt-4 sm:mt-6 p-3.5 sm:p-4 bg-slate-900 text-white rounded-xl font-mono text-xs sm:text-sm space-y-2">
+                            <div class="text-xs text-emerald-400 font-semibold uppercase tracking-wider">Solution Steps</div>
+                            <div id="solverSteps" class="space-y-1 text-slate-200">
+                                <div>Enter equation coefficients</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION 5: FINANCE SUITE -->
+                <section id="financeSection" class="tool-section space-y-4 sm:space-y-6 hidden">
+                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-3.5 sm:p-6">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3.5 mb-4 sm:mb-6">
+                            <div class="flex items-center gap-3">
+                                <span class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center text-base sm:text-lg font-bold shrink-0">
+                                    <i class="fas fa-chart-pie"></i>
+                                </span>
+                                <div>
+                                    <h3 class="text-sm sm:text-base font-bold text-slate-900">Financial Calculators</h3>
+                                    <p class="text-xs text-slate-500">Loan EMI, Interest, and Mortgage breakdown</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Loan EMI Panel -->
+                        <div id="finPanelEmi" class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                            <div class="space-y-3 sm:space-y-4">
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500">Loan Principal Amount ($)</label>
+                                    <input type="number" id="emiPrincipal" value="0" placeholder="0" oninput="calcEMI()" class="w-full bg-slate-50 border border-slate-300 font-mono text-sm rounded-lg p-2.5 mt-1">
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500">Interest Rate (% per year)</label>
+                                    <input type="number" id="emiRate" value="0" step="0.1" placeholder="0" oninput="calcEMI()" class="w-full bg-slate-50 border border-slate-300 font-mono text-sm rounded-lg p-2.5 mt-1">
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500">Tenure (Years)</label>
+                                    <input type="number" id="emiTenure" value="0" placeholder="0" oninput="calcEMI()" class="w-full bg-slate-50 border border-slate-300 font-mono text-sm rounded-lg p-2.5 mt-1">
+                                </div>
+                            </div>
+
+                            <div class="bg-teal-50 border border-teal-200 rounded-xl p-4 sm:p-5 flex flex-col justify-between">
+                                <div class="space-y-3">
+                                    <span class="text-xs font-bold uppercase text-teal-800 tracking-wider">Loan Breakdown</span>
+                                    <div>
+                                        <span class="text-xs text-slate-600">Monthly EMI Payment</span>
+                                        <div id="emiMonthly" class="text-2xl sm:text-3xl font-extrabold font-mono text-teal-700">$0.00</div>
+                                    </div>
+                                    <div class="pt-3 border-t border-teal-200 space-y-1 text-xs text-slate-700">
+                                        <div class="flex justify-between">
+                                            <span>Total Interest:</span>
+                                            <strong id="emiTotalInterest" class="font-mono text-teal-900">$0.00</strong>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span>Total Payable:</span>
+                                            <strong id="emiTotalPayable" class="font-mono text-teal-900">$0.00</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION 6: DEVELOPER TOOLS -->
+                <section id="developerSection" class="tool-section space-y-4 sm:space-y-6 hidden">
+                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-3.5 sm:p-6">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3.5 mb-4 sm:mb-6">
+                            <div class="flex items-center gap-3">
+                                <span class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-base sm:text-lg font-bold shrink-0">
+                                    <i class="fas fa-code"></i>
+                                </span>
+                                <div>
+                                    <h3 class="text-sm sm:text-base font-bold text-slate-900">Developer & Radix Utilities</h3>
+                                    <p class="text-xs text-slate-500">Radix Base Conversion & Color Codes</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Developer Tool Tabs -->
+                        <div class="flex gap-2 mb-4 sm:mb-6 border-b border-slate-200 pb-3">
+                            <button onclick="switchDevTab('base')" id="devTabBase" class="px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white">Base / Radix</button>
+                            <button onclick="switchDevTab('color')" id="devTabColor" class="px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-bold rounded-lg text-slate-600 hover:bg-slate-100">Color Converter</button>
+                        </div>
+
+                        <!-- Base Panel (All 4 sync live) -->
+                        <div id="devPanelBase" class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                            <div class="bg-slate-50 p-3 sm:p-3.5 rounded-xl border border-slate-200 space-y-1">
+                                <label class="text-xs font-bold text-slate-500 uppercase">Decimal (Base 10)</label>
+                                <input type="number" id="baseDec" value="0" placeholder="0" oninput="convertBase('dec')" class="w-full bg-white border border-slate-300 font-mono text-sm sm:text-base rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div class="bg-slate-50 p-3 sm:p-3.5 rounded-xl border border-slate-200 space-y-1">
+                                <label class="text-xs font-bold text-slate-500 uppercase">Hexadecimal (Base 16)</label>
+                                <input type="text" id="baseHex" value="0" placeholder="0" oninput="convertBase('hex')" class="w-full bg-white border border-slate-300 font-mono text-sm sm:text-base rounded-lg p-2.5 uppercase focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div class="bg-slate-50 p-3 sm:p-3.5 rounded-xl border border-slate-200 space-y-1">
+                                <label class="text-xs font-bold text-slate-500 uppercase">Binary (Base 2)</label>
+                                <input type="text" id="baseBin" value="0" placeholder="0" oninput="convertBase('bin')" class="w-full bg-white border border-slate-300 font-mono text-sm sm:text-base rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div class="bg-slate-50 p-3 sm:p-3.5 rounded-xl border border-slate-200 space-y-1">
+                                <label class="text-xs font-bold text-slate-500 uppercase">Octal (Base 8)</label>
+                                <input type="text" id="baseOct" value="0" placeholder="0" oninput="convertBase('oct')" class="w-full bg-white border border-slate-300 font-mono text-sm sm:text-base rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                        </div>
+
+                        <!-- Color Panel -->
+                        <div id="devPanelColor" class="hidden grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 items-center">
+                            <div class="md:col-span-4 flex flex-col items-center justify-center p-4 sm:p-6 bg-slate-50 rounded-xl border border-slate-200">
+                                <div id="colorSwatch" class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl shadow-md border-2 border-white bg-indigo-600 transition mb-3"></div>
+                                <input type="color" id="colorPicker" value="#4f46e5" oninput="convertColorPicker(this.value)" class="w-12 h-8 rounded cursor-pointer border-none">
+                            </div>
+                            <div class="md:col-span-8 space-y-3">
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500">HEX Code</label>
+                                    <input type="text" id="colorHex" value="#4F46E5" oninput="convertColorHex(this.value)" class="w-full bg-slate-50 border border-slate-300 font-mono text-sm rounded-lg p-2 mt-1">
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500">RGB</label>
+                                    <input type="text" id="colorRgb" value="rgb(79, 70, 229)" readonly class="w-full bg-slate-100 border border-slate-200 font-mono text-sm rounded-lg p-2 mt-1 text-slate-600">
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500">HSL</label>
+                                    <input type="text" id="colorHsl" value="hsl(243, 75%, 59%)" readonly class="w-full bg-slate-100 border border-slate-200 font-mono text-sm rounded-lg p-2 mt-1 text-slate-600">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION 7: HEALTH TOOLS -->
+                <section id="healthSection" class="tool-section space-y-4 sm:space-y-6 hidden">
+                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-3.5 sm:p-6">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3.5 mb-4 sm:mb-6">
+                            <div class="flex items-center gap-3">
+                                <span class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center text-base sm:text-lg font-bold shrink-0">
+                                    <i class="fas fa-heartbeat"></i>
+                                </span>
+                                <div>
+                                    <h3 class="text-sm sm:text-base font-bold text-slate-900">BMI & Health Calculator</h3>
+                                    <p class="text-xs text-slate-500">Body Mass Index and Ideal Weight evaluation</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                            <div class="space-y-3 sm:space-y-4">
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500">Height (cm)</label>
+                                    <input type="number" id="bmiHeight" value="0" placeholder="0" oninput="calculateBMI()" class="w-full bg-slate-50 border border-slate-300 font-mono text-sm rounded-lg p-2.5 mt-1">
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500">Weight (kg)</label>
+                                    <input type="number" id="bmiWeight" value="0" placeholder="0" oninput="calculateBMI()" class="w-full bg-slate-50 border border-slate-300 font-mono text-sm rounded-lg p-2.5 mt-1">
+                                </div>
+                            </div>
+
+                            <div class="bg-rose-50 border border-rose-200 rounded-xl p-4 sm:p-5 flex flex-col justify-between">
+                                <div>
+                                    <span class="text-xs font-bold uppercase text-rose-800 tracking-wider">BMI Result</span>
+                                    <div id="bmiValue" class="text-3xl sm:text-4xl font-extrabold font-mono text-rose-700 my-2">0.0</div>
+                                    <span id="bmiCategory" class="inline-block px-3 py-1 bg-slate-200 text-slate-700 font-semibold text-xs rounded-full">Enter height & weight</span>
+                                </div>
+                                <div class="mt-4 pt-3 border-t border-rose-200 text-xs text-slate-600">
+                                    <span>Healthy Weight Range: <strong id="bmiIdealRange" class="font-mono text-slate-900">0.0 kg – 0.0 kg</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION 8: SMART TIME & WORLD CLOCK -->
+                <section id="timerSection" class="tool-section space-y-4 sm:space-y-6 hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+                        <!-- Stopwatch & Timer -->
+                        <div class="lg:col-span-7 bg-white border border-slate-200 rounded-2xl shadow-sm p-4 sm:p-6 flex flex-col justify-between space-y-4">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                                    <i class="fas fa-stopwatch text-indigo-600"></i> Smart Timer & Stopwatch
+                                </h3>
+                                <div class="flex gap-2">
+                                    <button onclick="switchTimerMode('stopwatch')" id="timerModeStopwatch" class="px-3 py-1 text-xs font-bold rounded-lg bg-indigo-600 text-white">Stopwatch</button>
+                                </div>
+                            </div>
+
+                            <div class="py-6 sm:py-8 text-center">
+                                <div id="timerDisplay" class="text-4xl sm:text-6xl font-extrabold font-mono text-slate-900 tracking-wider">00:00:00</div>
+                            </div>
+
+                            <div class="flex justify-center gap-2.5 sm:gap-3">
+                                <button id="timerStartBtn" onclick="startTimer()" class="px-4 sm:px-6 py-2 sm:py-2.5 bg-brand-600 text-white font-bold text-xs sm:text-sm rounded-xl hover:bg-brand-700 shadow-md shadow-brand-500/20 transition flex items-center gap-2">
+                                    <i class="fas fa-play"></i> Start
+                                </button>
+                                <button onclick="pauseTimer()" class="px-4 sm:px-6 py-2 sm:py-2.5 bg-amber-500 text-white font-bold text-xs sm:text-sm rounded-xl hover:bg-amber-600 shadow-md transition flex items-center gap-2">
+                                    <i class="fas fa-pause"></i> Pause
+                                </button>
+                                <button onclick="resetTimer()" class="px-4 sm:px-6 py-2 sm:py-2.5 bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm rounded-xl hover:bg-slate-300 transition flex items-center gap-2">
+                                    <i class="fas fa-redo"></i> Reset
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Live World Clocks -->
+                        <div class="lg:col-span-5 bg-white border border-slate-200 rounded-2xl shadow-sm p-4 sm:p-6 space-y-3 sm:space-y-4">
+                            <h3 class="text-sm sm:text-base font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
+                                <i class="fas fa-globe text-brand-600"></i> Real-Time World Clock
+                            </h3>
+                            <div class="space-y-2.5 sm:space-y-3">
+                                <div class="flex justify-between items-center p-2.5 bg-slate-50 rounded-xl border border-slate-200">
+                                    <div>
+                                        <div class="font-bold text-xs text-slate-800">New York (EDT)</div>
+                                        <div class="text-[10px] text-slate-500">UTC -4</div>
+                                    </div>
+                                    <div id="clockNY" class="font-mono font-bold text-xs sm:text-sm text-brand-600">12:00:00 PM</div>
+                                </div>
+                                <div class="flex justify-between items-center p-2.5 bg-slate-50 rounded-xl border border-slate-200">
+                                    <div>
+                                        <div class="font-bold text-xs text-slate-800">London (BST)</div>
+                                        <div class="text-[10px] text-slate-500">UTC +1</div>
+                                    </div>
+                                    <div id="clockLondon" class="font-mono font-bold text-xs sm:text-sm text-brand-600">05:00:00 PM</div>
+                                </div>
+                                <div class="flex justify-between items-center p-2.5 bg-slate-50 rounded-xl border border-slate-200">
+                                    <div>
+                                        <div class="font-bold text-xs text-slate-800">Tokyo (JST)</div>
+                                        <div class="text-[10px] text-slate-500">UTC +9</div>
+                                    </div>
+                                    <div id="clockTokyo" class="font-mono font-bold text-xs sm:text-sm text-brand-600">01:00:00 AM</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Footer -->
+                <footer class="pt-4 sm:pt-6 border-t border-slate-200 text-center text-xs text-slate-400 pb-6">
+                    <p>© 2026 OmniConvert. Precision Engineering & Real-Time Tool Suite.</p>
+                </footer>
+            </main>
+        </div>
+
+        <!-- History Drawer Side Panel -->
+        <aside id="historyDrawer" class="w-72 sm:w-80 bg-white border-l border-slate-200 flex flex-col transition-all duration-300 z-40 fixed right-0 top-0 h-full translate-x-full shadow-2xl">
+            <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-history text-brand-600"></i>
+                    <h3 class="font-bold text-xs sm:text-sm text-slate-900">Activity History</h3>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="exportHistoryCSV()" class="text-xs text-brand-600 hover:underline font-semibold">CSV</button>
+                    <button onclick="clearHistory()" class="text-xs text-red-600 hover:underline font-semibold">Clear</button>
+                    <button id="closeHistory" class="text-slate-400 hover:text-slate-600 ml-1 p-1">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="historyFeed" class="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 divide-y divide-slate-100">
+                <!-- History Items -->
+            </div>
+        </aside>
+    </div>
+
+    <!-- Application Script -->
+    <script src="script.js"></script>
+</body>
+</html>
